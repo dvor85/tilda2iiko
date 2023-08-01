@@ -1,0 +1,14 @@
+[Unit]
+Description=tilda2iiko
+Requires=network.target
+After=network.target
+
+[Service]
+ExecStart=/usr/local/tilda2iiko/main.py
+User=www-data
+Restart=always
+RestartSec=1
+
+
+[Install]
+WantedBy=multi-user.target
