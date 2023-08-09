@@ -52,6 +52,8 @@ class Api_iiko():
 
     def create_or_update(self, **payload):
         genders = ['Мужской', 'Женский']
+        payload.setdefault("shouldReceivePromoActionsInfo", True)
+        payload.setdefault("consentStatus", 1)
         if 'birthday' in payload:
             try:
                 birthday = datetime.strptime(payload['birthday'][:10], '%d-%m-%Y')
