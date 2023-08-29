@@ -1,0 +1,11 @@
+[Unit]
+Description=prontosms_service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/tilda2iiko/prontosms.py
+User=www-data
+
+
+[Install]
+WantedBy=multi-user.target
