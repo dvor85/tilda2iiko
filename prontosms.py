@@ -32,12 +32,31 @@ class ProntoSMS():
             raise Exception(jdata['error'])
         return jdata
 
+    def get_balance(self):
+        return self.request('balance')
+
     def list_bases(self):
         r = self.request('list_bases')
         return r
 
+    def make_birhday_delivery(self, days=0):
+        pass
+
+    def list_phones(self):
+        id_base = self.get_id_base()
+        page, num_pages = 1, 1
+        phones = []
+        if id_base:
+            while page <= num_pages:
+                print(f"request page {page}")
+                r = self.request('list_phones', base={'id_base': id_base, 'page':page})
+                page, num_pages = int(r.get('page', page)) + 1, int(r.get('num_pages', num_pages))
+                phones.extend(r['phones'])
+        return phones
+
     def add_base(self):
-        _index = int(dt.datetime.now().hour <= 12)
+#         _index = int(dt.datetime.now().hour <= 12)
+        _index = 0
         base = {"id_base":self.get_id_base(),
                 "number_base":"1",
                 "name_base":config.PRONTO_BASE,
@@ -84,8 +103,30 @@ class ProntoSMS():
                                 f"{self.iikobiz.get_datetime(c['Birthday']):%m-%d}" == f"{dt.datetime.today()+dt.timedelta(days=days):%m-%d}"]
         return phones
 
-    def send_sms(self, phones):
-        r = self.request('sms')
+    def send_sms(self, *, text, phones:list, sender='', name_delivery='', **params):
+        senders = self.get_valid_senders()
+        abonents = []
+#         dict(params.copy() for i, p in enumerate(phones)
+        for i, p in enumerate(phones):
+            a = params.copy()
+            a['phone'] = p
+            a["number_sms"] = i + 1
+            abonents.append(a)
+
+        message = {
+            "type":"sms",
+            "text":text,
+            "translite":0,
+            "abonent":abonents
+        }
+        if senders:
+            if not sender or sender not in senders:
+                sender = self.get_valid_senders()[0]
+        message['sender'] = sender
+        if name_delivery:
+            message['name_delivery'] = name_delivery
+        print(message)
+        return self.request('sms', message=[message])
 
     def add_one_client(self, **payload):
         id_base = self.get_id_base()
@@ -124,20 +165,21 @@ class ProntoSMS():
         id_base = self.get_id_base()
         if id_base:
             ls = self.list_stats()
-            phones = [{'phone': s['phone'], 'action': 'delete', 'number_phone': i} for i, s in enumerate(ls['stats']) if s['status'] not in {'deliver', 'partly_deliver'}]
+            phones = [{'phone': s['phone'], 'action': 'delete', 'number_phone': i + 1} for i, s in enumerate(ls['stats']) if s['status'] not in {'deliver', 'partly_deliver'}]
             return self.request('phones', id_base=id_base, phones=phones)
+
+    def get_valid_senders(self):
+        r = self.request('originator')
+        return [s['originator'] for s in r['list_originator'] if s['state'] == 'completed']
 
 
 if __name__ == '__main__':
     pronto = ProntoSMS()
-
-#     print(pronto.import_clients_from_iiko())
+    pronto.add_base()
 #     sys.exit()
     while True:
         try:
-            pronto.add_base()
             pronto.stop_undelivered()
-
         except Exception as e:
             print(e)
         finally:
