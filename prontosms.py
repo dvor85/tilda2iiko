@@ -55,15 +55,15 @@ class ProntoSMS():
         return phones
 
     def add_base(self):
-#         _index = int(dt.datetime.now().hour <= 12)
         _index = 0
-        base = {"id_base":self.get_id_base(),
-                "number_base":"1",
+        id_base = self.get_id_base()
+
+        base = {"number_base":"1",
                 "name_base":config.PRONTO_BASE,
                 "local_time_birth":"yes",
-                "on_birth":"yes",
-                }
-        base.update(config.PRONTO_BASE_CONFIG[_index])
+                "on_birth":"no"}
+        if id_base:
+            base['id_base'] = id_base
         r = self.request('bases', bases=[base])
         return r['bases'][0]['id_base']
 
@@ -71,6 +71,9 @@ class ProntoSMS():
         for b in self.list_bases()['base']:
             if b['name_base'] == config.PRONTO_BASE:
                 return b['id_base']
+
+    def get_phones_info(self, phones:list):
+        return self.request('def', phones)
 
     def name_surname(self, name):
         names = name.split()
@@ -88,7 +91,7 @@ class ProntoSMS():
                        'surname': self.name_surname(c['Name'])[1],
                        'date_birth': f"{self.iikobiz.get_datetime(c['Birthday']):%Y-%m-%d}" if c['Birthday'] else None,
                        'male': c['Sex'],
-                       'number_phone': i} for i, c in enumerate(clients['data']) if not c['IsDeleted']]
+                       'number_phone': i + 1} for i, c in enumerate(clients['data']) if not c['IsDeleted']]
             return self.request('phones', id_base=id_base, phones=phones)
 
     def get_birthday_clients(self, days=0):
@@ -98,7 +101,7 @@ class ProntoSMS():
                        'surname': self.name_surname(c['Name'])[1],
                        'date_birth': f"{self.iikobiz.get_datetime(c['Birthday']):%Y-%m-%d}",
                        'male': c['Sex'],
-                       'number_phone': i} for i, c in enumerate(clients['data']) if not c['IsDeleted'] and
+                       'number_phone': i + 1} for i, c in enumerate(clients['data']) if not c['IsDeleted'] and
                                 c['Birthday'] and
                                 f"{self.iikobiz.get_datetime(c['Birthday']):%m-%d}" == f"{dt.datetime.today()+dt.timedelta(days=days):%m-%d}"]
         return phones
@@ -106,7 +109,6 @@ class ProntoSMS():
     def send_sms(self, *, text, phones:list, sender='', name_delivery='', **params):
         senders = self.get_valid_senders()
         abonents = []
-#         dict(params.copy() for i, p in enumerate(phones)
         for i, p in enumerate(phones):
             a = params.copy()
             a['phone'] = p
@@ -176,10 +178,11 @@ class ProntoSMS():
 if __name__ == '__main__':
     pronto = ProntoSMS()
     pronto.add_base()
+#     print(len(pronto.list_phones()))
 #     sys.exit()
     while True:
         try:
-            pronto.stop_undelivered()
+            print(pronto.stop_undelivered())
         except Exception as e:
             print(e)
         finally:
