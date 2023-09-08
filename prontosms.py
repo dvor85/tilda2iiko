@@ -139,11 +139,14 @@ class ProntoSMS():
                 except ValueError:
                     birthday = dt.datetime.strptime(payload['birthday'][:10], '%Y-%m-%d')
             payload['date_birth'] = f"{birthday:%Y-%m-%d}"
+            payload['name'] = payload.get('Name', '')
+            payload['phone'] = payload.get('Phone', '')
             payload['surname'] = payload.get('surName', '')
             payload['male'] = payload.get('sex', '')
             payload['number_phone'] = 1
-
+            print(payload)
             r = self.request('phones', id_base=id_base, phones=[payload])
+            print(r)
             return r
 
     def list_stats(self, days=1):
@@ -178,6 +181,7 @@ class ProntoSMS():
 if __name__ == '__main__':
     pronto = ProntoSMS()
     pronto.add_base()
+#     pronto.import_clients_from_iiko()
 #     print(len(pronto.list_phones()))
 #     sys.exit()
     while True:
