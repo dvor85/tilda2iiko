@@ -123,7 +123,7 @@ class ProntoSMS():
         }
         if senders:
             if not sender or sender not in senders:
-                sender = self.get_valid_senders()[0]
+                sender = senders[0]
         message['sender'] = sender
         if name_delivery:
             message['name_delivery'] = name_delivery
