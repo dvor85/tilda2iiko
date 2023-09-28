@@ -9,6 +9,7 @@ from fastapi import FastAPI, Request
 import config
 import iikoapi
 from prontosms import ProntoSMS
+import telega
 
 app = FastAPI(openapi_url=None, root_path='/service')
 
@@ -25,7 +26,15 @@ async def iiko(req:Request):
             params.update(jdata)
         if 'test' not in params:
             iiko = iikoapi.Api_iiko()
-            return iiko.create_or_update(**params)
+            if 'Ресторан' in params:
+                try:
+                    ci = iiko.get_customer_info(params['Phone'])
+                    if any('Черный список' in categ['name'] for categ in ci['categories']):
+                        await telega.send_message(f"Гость {ci['name']} тел. {ci['phone']} в \"Черном списке\"!")
+                except:
+                    print(f"client with phone: {params['Phone']} not exists")
+            else:
+                return iiko.create_or_update(**params)
 
 
 @app.post("/pronto")
