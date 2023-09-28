@@ -11,10 +11,7 @@ IIKOBIZ_NETWORK_ID = '2398rc9283-4nr92-3nc0-r9c2n30r'
 
 PRONTO_TOKEN = 'p94tj39vm4t934mv23904'
 PRONTO_BASE = 'base_name'
-PRONTO_BASE_CONFIG = [ {'time_birth': '15:00',
-                        'text_birth': "#name#, отметьте день рождения",
-                        'day_before': 14},
 
-                       {'time_birth': '11:00',
-                        'text_birth': "#name#, c днём рождения!",
-                        'day_before': 0} ]
+TILDA2PRONTO_TOKEN = ''
+TILDA2IIKO_TOKEN = ''
+MOBIZON_API_KEY = ''
