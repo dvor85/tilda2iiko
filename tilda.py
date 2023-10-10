@@ -52,6 +52,32 @@ async def pronto(req:Request):
             return pronto.add_one_client(**params)
 
 
+@app.post("/webhook")
+async def webhook(req:Request):
+    params = req.query_params._dict
+    if  'application/x-www-form-urlencoded' in req.headers.get('content-type', ''):
+        fdata = await req.form()
+        params.update(fdata)
+    elif 'application/json' in req.headers.get('content-type', ''):
+        jdata = await req.json()
+        params.update(jdata)
+
+    if params['subscriptionPassword'] == config.WEBHOOK_PASSWORD:
+        print(params)
+        iiko = iikoapi.Api_iiko()
+        text = []
+        if 'customerId' in params:
+            cinfo = iiko.get_customer_info(params['customerId'], type='id')
+            text.extend([f"Гость: {cinfo['name']} {cinfo.get('surname', '')}", f"Телефон: {cinfo['phone']}", f"Действие: {params.get('transactionType', '')}"])
+
+        if set(['walletId', 'sum']) < set(params):
+            wallet = [w for w in cinfo['walletBalances'] if w['id'] == params.get['walletId']]
+            text.append(f"{wallet['name']}: {params['sum']}")
+
+        text.append(params.get('text', ''))
+        await telega.send_message('\n'.join(text))
+
+
 if __name__ == "__main__":
     uvicorn.run("tilda:app", host="127.0.0.1", port=23986)
 
