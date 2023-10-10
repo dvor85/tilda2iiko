@@ -50,7 +50,7 @@ async def send_message(req:Request):
             time_send = datetime.datetime.strptime(time_send, "%Y-%m-%d %H:%M:%S")
         else:
             time_send = datetime.datetime.now()
-        validity_period = params.get('params', {}).get('validity', 1440)
+        validity_period = params.get('params', {}).get('validity', 180)
         if validity_period:
             validity_period = time_send + datetime.timedelta(minutes=int(validity_period))
 
