@@ -86,11 +86,11 @@ class Api_iiko():
             if categ['name'].lower() == name.lower():
                 return categ['id']
 
-    def get_customer_info(self, phone, type='phone'):
-        if type == 'phone':
-            r = self.request('/api/1/loyalty/iiko/customer/info', type=type, phone=phone)
-        elif type == 'id':
-            r = self.request('/api/1/loyalty/iiko/customer/info', type=type, id=phone)
+    def get_customer_info(self, phone, atype='phone'):
+        if atype == 'phone':
+            r = self.request('/api/1/loyalty/iiko/customer/info', type=atype, phone=phone)
+        elif atype == 'id':
+            r = self.request('/api/1/loyalty/iiko/customer/info', type=atype, id=phone)
         return r
 
     def add_customer_to_categ(self, phone, name):

@@ -10,6 +10,7 @@ import config
 import iikoapi
 from prontosms import ProntoSMS
 import telega
+from fastapi.exceptions import HTTPException
 
 app = FastAPI(openapi_url=None, root_path='/service')
 
@@ -35,6 +36,8 @@ async def iiko(req:Request):
                     print(f"client with phone: {params['Phone']} not exists")
             else:
                 return iiko.create_or_update(**params)
+    else:
+        raise HTTPException(status_code=401, detail='Unauthorized')
 
 
 @app.post("/pronto")
@@ -50,6 +53,8 @@ async def pronto(req:Request):
         if 'test' not in params:
             pronto = ProntoSMS()
             return pronto.add_one_client(**params)
+    else:
+        raise HTTPException(status_code=401, detail='Unauthorized')
 
 
 @app.post("/webhook")
@@ -67,15 +72,18 @@ async def webhook(req:Request):
         iiko = iikoapi.Api_iiko()
         text = []
         if 'customerId' in params:
-            cinfo = iiko.get_customer_info(params['customerId'], type='id')
+            cinfo = iiko.get_customer_info(params['customerId'], atype='id')
             text.extend([f"Гость: {cinfo['name']} {cinfo.get('surname', '')}", f"Телефон: {cinfo['phone']}", f"Действие: {params.get('transactionType', '')}"])
 
         if set(['walletId', 'sum']) < set(params):
             wallet = [w for w in cinfo['walletBalances'] if w['id'] == params.get['walletId']]
             text.append(f"{wallet['name']}: {params['sum']}")
+            text.append(f"Баланс: {wallet['balance']}")
 
         text.append(params.get('text', ''))
         await telega.send_message('\n'.join(text))
+    else:
+        raise HTTPException(status_code=401, detail='Unauthorized')
 
 
 if __name__ == "__main__":

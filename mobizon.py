@@ -10,6 +10,7 @@ import datetime
 
 import config
 from prontosms import ProntoSMS
+from fastapi.exceptions import HTTPException
 
 app = FastAPI(openapi_url=None, root_path='/service')
 
@@ -27,6 +28,8 @@ async def user_getownbalance(apiKey:str):
             },
             "message":""
         }
+    else:
+        raise HTTPException(status_code=401, detail='Unauthorized')
 
 
 @app.get('/Message/SendSmsMessage')
@@ -61,6 +64,8 @@ async def send_message(req:Request):
                 'messageId': r['sms'][0].get('id_sms'),
                 'status': 2 if r['sms'][0]['action'] == 'send' else 1
                 }
+    else:
+        raise HTTPException(status_code=401, detail='Unauthorized')
 
 
 if __name__ == "__main__":
