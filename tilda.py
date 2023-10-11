@@ -76,9 +76,10 @@ async def webhook(req:Request):
             text.extend([f"Гость: {cinfo['name']} {cinfo.get('surname', '')}", f"Телефон: {cinfo['phone']}", f"Действие: {params.get('transactionType', '')}"])
 
         if set(['walletId', 'sum']) < set(params):
-            wallet = [w for w in cinfo['walletBalances'] if w['id'] == params.get['walletId']]
-            text.append(f"{wallet['name']}: {params['sum']}")
-            text.append(f"Баланс: {wallet['balance']}")
+            wallet = next((w for w in cinfo['walletBalances'] if w['id'] == params['walletId']), None)
+            if wallet:
+                text.append(f"{wallet['name']}: {params['sum']}")
+                text.append(f"Баланс: {wallet['balance']}")
 
         text.append(params.get('text', ''))
         await telega.send_message('\n'.join(text))
