@@ -12,6 +12,7 @@ import time
 import datetime as dt
 from iikoapi import Api_iiko
 from iikobiz import Iiko_biz
+import telega
 
 
 class ProntoSMS():
@@ -184,9 +185,14 @@ if __name__ == '__main__':
 #     pronto.import_clients_from_iiko()
 #     print(len(pronto.list_phones()))
 #     sys.exit()
+    bt = time.time()
     while True:
         try:
             print(pronto.stop_undelivered())
+            r = pronto.get_balance()
+            if r['money']['value'] <= 100 and time.time() - bt >= 86400:
+                telega.send_message(f"Баланс prontosms = {r['money']['value']}")
+                bt = time.time()
         except Exception as e:
             print(e)
         finally:
