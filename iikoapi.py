@@ -36,7 +36,7 @@ class Api_iiko():
         r.raise_for_status()
         jdata = r.json()
         if 'error' in jdata:
-            raise Exception(jdata['error'])
+            raise Exception(f"{jdata['error']} {jdata['errorDescription']}")
         return jdata
 
     def get_token(self):
@@ -95,11 +95,12 @@ class Api_iiko():
 
     def add_customer_to_categ(self, phone, name):
         cinfo = self.get_customer_info(phone)
-        customer_id = cinfo.get('id') if not cinfo.get('isDeleted') else None
-        if customer_id:
-            categ_id = self.get_categ_by_name(name)
-            if categ_id:
-                return self.request('/api/1/loyalty/iiko/customer_category/add', categoryId=categ_id, customerId=customer_id)
+        if not any(name.lower() in categ['name'].lower() for categ in cinfo['categories']):
+            customer_id = cinfo.get('id') if not cinfo.get('isDeleted') else None
+            if customer_id:
+                categ_id = self.get_categ_by_name(name)
+                if categ_id:
+                    return self.request('/api/1/loyalty/iiko/customer_category/add', categoryId=categ_id, customerId=customer_id)
 
     def create_order(self):
         r = self.request('/api/1/order/create', terminalGroupId=self.get_terminal_groups(), phone='+79998887770', items=[])
@@ -111,7 +112,6 @@ class Api_iiko():
 
 if __name__ == '__main__':
     iiko = Api_iiko()
-
 #     print(iiko.get_terminal_groups())
 #     print(iiko.create_or_update(phone="+79998887770", name="Test"*4, birthday="1985-09-01 00:00:00.000", sex="Мужской", email=""))
 #     print(iiko.get_customer_info('+79998887775'))
