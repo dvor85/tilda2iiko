@@ -76,6 +76,8 @@ async def webhook(req:Request):
             text.extend([f"Гость: {cinfo['name']} {cinfo.get('surname', '')}", f"Телефон: {cinfo['phone']}", f"Действие: {params.get('transactionType', '')}"])
 
         if set(['walletId', 'sum']) < set(params):
+            if abs(params['sum']) < 1:
+                return
             wallet = next((w for w in cinfo['walletBalances'] if w['id'] == params['walletId']), None)
             if wallet:
                 text.append(f"{wallet['name']}: {params['sum']}")
