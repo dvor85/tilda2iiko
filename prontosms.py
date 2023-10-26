@@ -13,6 +13,7 @@ import datetime as dt
 from iikoapi import Api_iiko
 from iikobiz import Iiko_biz
 import telega
+import asyncio
 
 
 class ProntoSMS():
@@ -191,7 +192,7 @@ if __name__ == '__main__':
             print(pronto.stop_undelivered())
             r = pronto.get_balance()
             if r['money']['value'] <= 100 and time.time() - bt >= 86400:
-                telega.send_message(f"Баланс prontosms = {r['money']['value']}")
+                asyncio.run(telega.send_message(f"Баланс prontosms = {r['money']['value']} {r['money']['currency']}"))
                 bt = time.time()
         except Exception as e:
             print(e)
