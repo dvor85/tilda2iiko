@@ -73,7 +73,10 @@ async def webhook(req:Request):
         text = []
         if 'customerId' in params:
             cinfo = iiko.get_customer_info(params['customerId'], atype='id')
-            text.extend([f"Гость: {cinfo['name']} {cinfo.get('surname', '')}", f"Телефон: {cinfo['phone']}", f"Действие: {params.get('transactionType', '')}"])
+            text.extend([f"Гость: {cinfo['name']} {cinfo.get('surname', '')}", f"Телефон: {cinfo['phone']}"])
+            if cinfo.get('email'):
+                text.append(f"Email: {cinfo['email']}")
+            text.append(f"Действие: {params.get('transactionType', '')}")
 
         if set(['walletId', 'sum']) < set(params):
             if abs(params['sum']) < 1:
