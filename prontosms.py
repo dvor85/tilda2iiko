@@ -140,7 +140,7 @@ class ProntoSMS():
                     birthday = dt.datetime.strptime(payload['birthday'][:10], '%d-%m-%Y')
                 except ValueError:
                     birthday = dt.datetime.strptime(payload['birthday'][:10], '%Y-%m-%d')
-            payload['date_birth'] = f"{birthday:%Y-%m-%d}"
+                payload['date_birth'] = f"{birthday:%Y-%m-%d}"
             payload['name'] = payload.get('Name', '')
             payload['phone'] = payload.get('Phone', '')
             payload['surname'] = payload.get('surName', '')
