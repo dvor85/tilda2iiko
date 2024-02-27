@@ -69,6 +69,7 @@ async def webhook(req:Request):
 
     if params['subscriptionPassword'] == config.WEBHOOK_PASSWORD:
         print(params)
+
         iiko = iikoapi.Api_iiko()
         text = []
         if 'customerId' in params:
@@ -93,5 +94,5 @@ async def webhook(req:Request):
 
 
 if __name__ == "__main__":
-    uvicorn.run("tilda:app", host="127.0.0.1", port=23986)
+    uvicorn.run("tilda:app", host="127.0.0.1", port=23986, workers=2)
 

@@ -7,7 +7,6 @@ Created on 25 авг. 2023 г.
 import config
 import requests
 import json
-import sys
 import time
 import datetime as dt
 from iikoapi import Api_iiko
@@ -27,7 +26,7 @@ class ProntoSMS():
         headers.setdefault('Content-Type', 'application/json; charset=utf-8')
         headers['Authorization'] = f'Bearer {config.PRONTO_TOKEN}'
         payload.setdefault('type', cmd)
-        r = requests.post(self.SERVER, data=json.dumps(payload), headers=headers, timeout=10)
+        r = requests.post(self.SERVER, data=json.dumps(payload), headers=headers, timeout=15)
         r.raise_for_status()
         jdata = r.json()
         if 'error' in jdata:

@@ -28,7 +28,7 @@ class Iiko_biz:
         cookie = {'iikoBiz': config.IIKOBIZ_COOKIE}
         print(headers)
         print(payload)
-        r = requests.post(f"{self.SERVER}{cmd}", data=payload, headers=headers, cookies=cookie, timeout=10)
+        r = requests.post(f"{self.SERVER}{cmd}", data=payload, headers=headers, cookies=cookie, timeout=15)
         r.raise_for_status()
         return r
 

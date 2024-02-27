@@ -32,7 +32,7 @@ class Api_iiko():
         payload.setdefault("organizationId", config.IIKO_ORGANIZATION_ID)
         print(headers)
         print(payload)
-        r = requests.post(f'{self.API_SERVER}{cmd}', data=json.dumps(payload), headers=headers, timeout=10)
+        r = requests.post(f'{self.API_SERVER}{cmd}', data=json.dumps(payload), headers=headers, timeout=15)
         r.raise_for_status()
         jdata = r.json()
         if 'error' in jdata:
@@ -113,6 +113,6 @@ class Api_iiko():
 if __name__ == '__main__':
     iiko = Api_iiko()
 #     print(iiko.get_terminal_groups())
-#     print(iiko.create_or_update(phone="+79998887770", name="Test"*4, birthday="1985-09-01 00:00:00.000", sex="Мужской", email=""))
-#     print(iiko.get_customer_info('+79998887775'))
+    print(iiko.create_or_update(phone="+79998887770", name="Test"*4, birthday="1985-09-01 00:00:00.000", sex="Мужской", email=""))
+    print(iiko.get_customer_info('+79998887770'))
 #     print(iiko.get_menu())

@@ -2,6 +2,7 @@
 
 import config
 import logging
+import requests
 from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
@@ -13,6 +14,16 @@ logging.basicConfig(
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Your chat_id={update.effective_chat.id}")
+
+
+def sendMessage(text):
+        API_SERVER = f"https://api.telegram.org/bot{config.TELEGRAM_TOKEN}"
+        if text:
+            for chat_id in config.TELEGRAM_CHATS:
+                r = requests.post(f"{API_SERVER}/sendMessage", params={"chat_id": chat_id, "text": text}, timeout=10)
+                res = r.json()
+                if not res['ok']:
+                    logging.error(f"{res['error_code']}: {res['description']}")
 
 
 async def send_message(text):
