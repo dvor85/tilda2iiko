@@ -30,7 +30,10 @@ async def send_message(text):
     bot = Bot(config.TELEGRAM_TOKEN)
     async with bot:
         for chat_id in config.TELEGRAM_CHATS:
-            await bot.send_message(text=text, chat_id=chat_id)
+            try:
+                await bot.send_message(text=text, chat_id=chat_id)
+            except Exception as e:
+                logging.exception(f'Error {e}')
 
 
 if __name__ == '__main__':

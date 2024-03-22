@@ -7,6 +7,9 @@ Created on 25 июл. 2023 г.
 import uvicorn
 from fastapi import FastAPI, Request
 import config
+from datetime import datetime
+import json
+from pathlib import Path
 import iikoapi
 from prontosms import ProntoSMS
 import telega
@@ -35,7 +38,18 @@ async def iiko(req:Request):
                 except:
                     print(f"client with phone: {params['Phone']} not exists")
             else:
-                return iiko.create_or_update(**params)
+                iiko.create_or_update(**params)
+                text = []
+                cinfo = iiko.get_customer_info(params['Phone'])
+                text.extend([f"Гость: {cinfo['name']} {cinfo.get('surname', '')}", f"Телефон: {cinfo['phone']}"])
+                if cinfo.get('sex', 0):
+                    text.append(f"Пол: {('Женский', 'Мужской')[cinfo['sex'] % 2]}")
+                birthday = datetime.strptime(cinfo['birthday'][:10], '%Y-%m-%d')
+                text.append(f"Дата рождения: {birthday:%d-%m-%Y}")
+                if cinfo.get('email'):
+                    text.append(f"Email: {cinfo['email']}")
+                text.append(f"Действие: Регистрация в системе лояльности")
+                await telega.send_message('\n'.join(text))
     else:
         raise HTTPException(status_code=401, detail='Unauthorized')
 
@@ -59,6 +73,7 @@ async def pronto(req:Request):
 
 @app.post("/webhook")
 async def webhook(req:Request):
+
     params = req.query_params._dict
     if  'application/x-www-form-urlencoded' in req.headers.get('content-type', ''):
         fdata = await req.form()
@@ -69,6 +84,21 @@ async def webhook(req:Request):
 
     if params['subscriptionPassword'] == config.WEBHOOK_PASSWORD:
         print(params)
+#         filter doubles
+        if {'changedOn', 'customerId'} < set(params):
+            try:
+                isodt = lambda f: datetime.fromisoformat('+'.join(a if i else a[:-1] for i, a in enumerate(f.split('+'))))
+                cached_file = Path("/tmp/iiko/webhook")
+                cached_file.parent.mkdir(parents=True, exist_ok=True)
+                cached_params = json.loads(cached_file.read_text()) if cached_file.is_file() else []
+                cached_params = list(filter(lambda m: isodt(params['changedOn']).timestamp() - isodt(m['changedOn']).timestamp() < 3600, cached_params))
+                if any(map(lambda m: m['changedOn'] == params['changedOn'] and m['customerId'] == params['customerId'], cached_params)):
+                    return
+
+                cached_params.append(params)
+                cached_file.write_text(json.dumps(cached_params))
+            except Exception as e:
+                print('Error in filter doubles:', e)
 
         iiko = iikoapi.Api_iiko()
         text = []
@@ -79,7 +109,7 @@ async def webhook(req:Request):
                 text.append(f"Email: {cinfo['email']}")
             text.append(f"Действие: {params.get('transactionType', '')}")
 
-        if set(['walletId', 'sum']) < set(params):
+        if {'walletId', 'sum'} < set(params):
             if abs(params['sum']) < 1:
                 return
             wallet = next((w for w in cinfo['walletBalances'] if w['id'] == params['walletId']), None)
@@ -94,5 +124,5 @@ async def webhook(req:Request):
 
 
 if __name__ == "__main__":
-    uvicorn.run("tilda:app", host="127.0.0.1", port=23986, workers=2)
+    uvicorn.run("tilda:app", host="127.0.0.1", port=23986, workers=1)
 
