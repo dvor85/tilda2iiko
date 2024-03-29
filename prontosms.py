@@ -188,7 +188,7 @@ if __name__ == '__main__':
     bt = time.time()
     while True:
         try:
-            print(pronto.stop_undelivered())
+#             print(pronto.stop_undelivered())
             r = pronto.get_balance()
             if r['money']['value'] <= 100 and time.time() - bt >= 86400:
                 asyncio.run(telega.send_message(f"Баланс prontosms = {r['money']['value']} {r['money']['currency']}"))

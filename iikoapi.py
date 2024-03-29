@@ -41,13 +41,11 @@ class Api_iiko():
 
     def get_token(self):
         if not self.token_is_expired():
-            with self.token_file.open(mode='r') as fp:
-                token = json.load(fp)
+            token = json.loads(self.token_file.read_text())
         else:
             r = self.request('/api/1/access_token', apiLogin=config.IIKO_API_KEY)
             token = r['token']
-            with self.token_file.open(mode='w') as fp:
-                json.dump(token, fp)
+            self.token_file.write_text(json.dumps(token))
         return token
 
     def get_organization_id(self):
@@ -92,6 +90,18 @@ class Api_iiko():
         elif atype == 'id':
             r = self.request('/api/1/loyalty/iiko/customer/info', type=atype, id=phone)
         return r
+
+    @staticmethod
+    def format_guest_info(cinfo):
+        text = [f"Гость: {cinfo['name']} {cinfo.get('surname', '')}", f"Телефон: {cinfo['phone']}"]
+        if cinfo.get('sex'):
+            text.append(f"Пол: {('Женский', 'Мужской')[cinfo['sex'] % 2]}")
+        if cinfo.get('birthday'):
+            birthday = datetime.strptime(cinfo['birthday'][:10], '%Y-%m-%d')
+            text.append(f"Дата рождения: {birthday:%d-%m-%Y}")
+        if cinfo.get('email'):
+            text.append(f"Email: {cinfo['email']}")
+        return text
 
     def add_customer_to_categ(self, phone, name):
         cinfo = self.get_customer_info(phone)

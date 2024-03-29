@@ -39,17 +39,9 @@ async def iiko(req:Request):
                     print(f"client with phone: {params['Phone']} not exists")
             else:
                 iiko.create_or_update(**params)
-                text = []
-                cinfo = iiko.get_customer_info(params['Phone'])
-                text.extend([f"Гость: {cinfo['name']} {cinfo.get('surname', '')}", f"Телефон: {cinfo['phone']}"])
-                if cinfo.get('sex', 0):
-                    text.append(f"Пол: {('Женский', 'Мужской')[cinfo['sex'] % 2]}")
-                birthday = datetime.strptime(cinfo['birthday'][:10], '%Y-%m-%d')
-                text.append(f"Дата рождения: {birthday:%d-%m-%Y}")
-                if cinfo.get('email'):
-                    text.append(f"Email: {cinfo['email']}")
-                text.append(f"Действие: Регистрация в системе лояльности")
-                await telega.send_message('\n'.join(text))
+#                 text = iiko.format_guest_info(iiko.get_customer_info(params['Phone']))
+#                 text.append(f"Действие: Регистрация в системе лояльности")
+#                 await telega.send_message('\n'.join(text))
     else:
         raise HTTPException(status_code=401, detail='Unauthorized')
 
@@ -86,9 +78,9 @@ async def webhook(req:Request):
         print(params)
 #         filter doubles
         if {'changedOn', 'customerId'} < set(params):
+            cached_file = Path("/tmp/iiko/webhook")
             try:
                 isodt = lambda f: datetime.fromisoformat('+'.join(a if i else a[:-1] for i, a in enumerate(f.split('+'))))
-                cached_file = Path("/tmp/iiko/webhook")
                 cached_file.parent.mkdir(parents=True, exist_ok=True)
                 cached_params = json.loads(cached_file.read_text()) if cached_file.is_file() else []
                 cached_params = list(filter(lambda m: isodt(params['changedOn']).timestamp() - isodt(m['changedOn']).timestamp() < 3600, cached_params))
@@ -99,14 +91,13 @@ async def webhook(req:Request):
                 cached_file.write_text(json.dumps(cached_params))
             except Exception as e:
                 print('Error in filter doubles:', e)
+                cached_file.unlink(missing_ok=True)
 
         iiko = iikoapi.Api_iiko()
         text = []
         if 'customerId' in params:
             cinfo = iiko.get_customer_info(params['customerId'], atype='id')
-            text.extend([f"Гость: {cinfo['name']} {cinfo.get('surname', '')}", f"Телефон: {cinfo['phone']}"])
-            if cinfo.get('email'):
-                text.append(f"Email: {cinfo['email']}")
+            text = iiko.format_guest_info(cinfo)
             text.append(f"Действие: {params.get('transactionType', '')}")
 
         if {'walletId', 'sum'} < set(params):
